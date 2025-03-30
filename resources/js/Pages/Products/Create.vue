@@ -1,349 +1,341 @@
 <template>
   <AuthenticatedLayout>
-    <template #header>
-      Agregar Producto
-    </template>
+    <template #header>Agregar Nuevo Producto</template>
 
-    <div class="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <form @submit.prevent="submitProduct" class="space-y-6">
-        <!-- Nombre -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Nombre del Producto</label>
-          <input
-            v-model="form.name"
-            type="text"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-            :class="{ 'border-red-500': errors.name }"
-            placeholder="Ej: Laptop Dell XPS"
-            required
-          />
-          <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <form @submit.prevent="submit" class="space-y-6">
+        <!-- Mensajes de error generales -->
+        <div v-if="Object.keys(errors).length > 0" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
+          <p class="font-semibold">Por favor corrige los siguientes errores:</p>
+          <ul class="mt-1 list-disc list-inside text-sm">
+            <li v-for="(error, key) in errors" :key="key">{{ error }}</li>
+          </ul>
         </div>
 
-        <!-- Código de Barras -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Código de Barras</label>
-          <div class="flex items-center space-x-3">
-            <input
-              v-model="form.barcode"
-              type="text"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-              :class="{ 'border-red-500': errors.barcode }"
-              placeholder="Escanea o ingresa el código de barras"
-            />
-            <button
-              type="button"
-              @click="startBarcodeScanner"
-              class="mt-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              Escanear
-            </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Información básica -->
+          <div class="space-y-6 col-span-1">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Información Básica</h3>
+            </div>
+
+            <div>
+              <label for="name" class="block text-sm font-medium text-gray-700">Nombre del Producto*</label>
+              <input 
+                id="name" 
+                v-model="form.name" 
+                type="text" 
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200"
+                required
+              />
+            </div>
+
+            <div>
+              <label for="description" class="block text-sm font-medium text-gray-700">Descripción</label>
+              <textarea 
+                id="description" 
+                v-model="form.description" 
+                rows="3"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200"
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="category_id" class="block text-sm font-medium text-gray-700">Categoría*</label>
+              <select 
+                id="category_id" 
+                v-model="form.category_id" 
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200"
+                required
+              >
+                <option value="" disabled>Seleccione una categoría</option>
+                <option v-for="category in categories" :key="category.id" :value="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label for="supplier_id" class="block text-sm font-medium text-gray-700">Proveedor*</label>
+              <select 
+                id="supplier_id" 
+                v-model="form.supplier_id" 
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200"
+                required
+              >
+                <option value="" disabled>Seleccione un proveedor</option>
+                <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
+                  {{ supplier.name }}
+                </option>
+              </select>
+            </div>
           </div>
-          <p v-if="errors.barcode" class="mt-1 text-sm text-red-600">{{ errors.barcode }}</p>
-        </div>
 
-        <!-- Descripción -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Descripción</label>
-          <textarea
-            v-model="form.description"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-            :class="{ 'border-red-500': errors.description }"
-            placeholder="Describe el producto..."
-            rows="3"
-          ></textarea>
-          <p v-if="errors.description" class="mt-1 text-sm text-red-600">{{ errors.description }}</p>
-        </div>
+          <!-- Precios y Stock -->
+          <div class="space-y-6 col-span-1">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Precios y Stock</h3>
+            </div>
 
-        <!-- Precios -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Precio de Compra</label>
-            <input
-              v-model="form.purchase_price"
-              type="number"
-              step="0.01"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-              :class="{ 'border-red-500': errors.purchase_price }"
-              placeholder="Ej: 500.00"
-              required
-            />
-            <p v-if="errors.purchase_price" class="mt-1 text-sm text-red-600">{{ errors.purchase_price }}</p>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Precio de Venta</label>
-            <input
-              v-model="form.sale_price"
-              type="number"
-              step="0.01"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-              :class="{ 'border-red-500': errors.sale_price }"
-              placeholder="Ej: 600.00"
-              required
-            />
-            <p v-if="errors.sale_price" class="mt-1 text-sm text-red-600">{{ errors.sale_price }}</p>
-          </div>
-        </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="purchase_price" class="block text-sm font-medium text-gray-700">Precio de Compra*</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span class="text-gray-500 sm:text-sm">$</span>
+                  </div>
+                  <input 
+                    id="purchase_price" 
+                    v-model="form.purchase_price" 
+                    type="number" 
+                    step="0.01"
+                    min="0"
+                    class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200"
+                    required
+                    @input="calculateProfit"
+                  />
+                </div>
+              </div>
 
-        <!-- Imagen -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Imagen del Producto</label>
-          <input
-            type="file"
-            @change="handleImageUpload"
-            class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-            accept="image/*"
-          />
-          <p v-if="errors.image" class="mt-1 text-sm text-red-600">{{ errors.image }}</p>
-        </div>
+              <div>
+                <label for="selling_price" class="block text-sm font-medium text-gray-700">Precio de Venta*</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span class="text-gray-500 sm:text-sm">$</span>
+                  </div>
+                  <input 
+                    id="selling_price" 
+                    v-model="form.selling_price" 
+                    type="number" 
+                    step="0.01"
+                    min="0"
+                    class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200"
+                    required
+                    @input="calculateProfit"
+                  />
+                </div>
+              </div>
+            </div>
 
-        <!-- Stock -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Stock Inicial</label>
-          <input
-            v-model="form.stock"
-            type="number"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-            :class="{ 'border-red-500': errors.stock }"
-            placeholder="Ej: 10"
-            required
-          />
-          <p v-if="errors.stock" class="mt-1 text-sm text-red-600">{{ errors.stock }}</p>
-        </div>
+            <div>
+              <label for="stock" class="block text-sm font-medium text-gray-700">Stock Inicial*</label>
+              <input 
+                id="stock" 
+                v-model="form.stock" 
+                type="number" 
+                min="0"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200"
+                required
+              />
+            </div>
 
-        <!-- Categoría y Proveedor -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Categoría</label>
-            <select
-              v-model="form.category_id"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-              :class="{ 'border-red-500': errors.category_id }"
-              required
-            >
-              <option value="" disabled>Selecciona una categoría</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
-                {{ category.name }}
-              </option>
-            </select>
-            <p v-if="errors.category_id" class="mt-1 text-sm text-red-600">{{ errors.category_id }}</p>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Proveedor</label>
-            <select
-              v-model="form.supplier_id"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-              :class="{ 'border-red-500': errors.supplier_id }"
-            >
-              <option value="" disabled>Selecciona un proveedor (opcional)</option>
-              <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
-                {{ supplier.name }}
-              </option>
-            </select>
-            <p v-if="errors.supplier_id" class="mt-1 text-sm text-red-600">{{ errors.supplier_id }}</p>
+            <div v-if="profit !== null" class="mt-4 p-3 bg-green-50 rounded-md">
+              <h4 class="font-medium text-green-800">Cálculo de Ganancia</h4>
+              <div class="mt-2 grid grid-cols-2 gap-4">
+                <div>
+                  <p class="text-sm text-gray-700">Ganancia por Unidad:</p>
+                  <p class="font-semibold">${{ profit.toFixed(2) }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-700">Porcentaje de Ganancia:</p>
+                  <p class="font-semibold">{{ profitPercentage.toFixed(2) }}%</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Botones -->
-        <div class="flex justify-end space-x-3">
-          <button
-            type="button"
-            @click="cancel"
-            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+        <!-- Código de Barras e Imagen -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Código de Barras</h3>
+            </div>
+
+            <div class="flex items-center space-x-4">
+              <input 
+                id="barcode" 
+                v-model="form.barcode" 
+                type="text" 
+                placeholder="Escanea o ingresa el código de barras"
+                class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200"
+              />
+              <button 
+                type="button"
+                @click="scanBarcode"
+                class="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z" clip-rule="evenodd" />
+                  <path d="M11 4a1 1 0 10-2 0v1a1 1 0 002 0V4zM10 7a1 1 0 011 1v1h2a1 1 0 110 2h-3a1 1 0 01-1-1V8a1 1 0 011-1zM16 9a1 1 0 100 2 1 1 0 000-2zM9 13a1 1 0 011-1h1a1 1 0 110 2v2a1 1 0 11-2 0v-3zM7 11a1 1 0 100-2H4a1 1 0 100 2h3zM17 13a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM16 17a1 1 0 100-2h-3a1 1 0 100 2h3z" />
+                </svg>
+                Escanear
+              </button>
+            </div>
+
+            <div class="mt-1 text-sm text-gray-500">
+              Si no proporcionas un código de barras, se generará uno automáticamente.
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Imagen del Producto</h3>
+            </div>
+
+            <div class="flex items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-md">
+              <div v-if="!imagePreview" class="text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <div class="mt-2 flex justify-center text-sm text-gray-600">
+                  <label for="image" class="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none">
+                    <span>Cargar una imagen</span>
+                    <input id="image" name="image" type="file" class="sr-only" @change="handleImageUpload">
+                  </label>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">PNG, JPG, GIF hasta 2MB</p>
+              </div>
+              <div v-else class="text-center">
+                <img :src="imagePreview" alt="Vista previa" class="max-h-32 mx-auto">
+                <button 
+                  type="button" 
+                  @click="removeImage" 
+                  class="mt-2 text-sm text-red-600 hover:text-red-900"
+                >
+                  Eliminar imagen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex justify-end space-x-3 pt-6 border-t">
+          <Link 
+            href="/products" 
+            class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
             Cancelar
-          </button>
-          <button
-            type="submit"
-            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          </Link>
+          <button 
+            type="submit" 
+            class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
             :disabled="isSubmitting"
           >
-            {{ isSubmitting ? 'Guardando...' : 'Guardar Producto' }}
+            <span v-if="isSubmitting">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Guardando...
+            </span>
+            <span v-else>Guardar Producto</span>
           </button>
         </div>
       </form>
-
-      <!-- Modal para escanear código de barras -->
-      <div v-if="showScanner" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
-          <h2 class="text-xl font-semibold mb-4">Escanear Código de Barras</h2>
-          <div id="barcode-scanner" class="w-full h-64 bg-gray-200"></div>
-          <div class="mt-4 flex justify-end space-x-2">
-            <button
-              @click="stopBarcodeScanner"
-              class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </AuthenticatedLayout>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { router } from '@inertiajs/vue3'
-import axios from 'axios'
-import Quagga from 'quagga'
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { ref, computed } from 'vue';
+import { Link, useForm } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
-const form = ref({
+// Props
+const props = defineProps({
+  categories: Array,
+  suppliers: Array,
+  errors: Object
+});
+
+// Form data
+const form = useForm({
   name: '',
-  barcode: '',
   description: '',
-  purchase_price: 0,
-  sale_price: 0,
-  image: null,
+  purchase_price: '',
+  selling_price: '',
   stock: 0,
   category_id: '',
   supplier_id: '',
-})
+  barcode: '',
+  image: null
+});
 
-const errors = ref({})
-const categories = ref([])
-const suppliers = ref([])
-const isSubmitting = ref(false)
-const showScanner = ref(false)
+// UI state
+const isSubmitting = ref(false);
+const imagePreview = ref(null);
+const profit = ref(null);
+const profitPercentage = ref(0);
 
-onMounted(async () => {
-  // Obtener categorías
-  try {
-    const categoriesResponse = await axios.get('/categories')
-    categories.value = categoriesResponse.data
-  } catch (error) {
-    console.error(error)
-    alert('Error al cargar las categorías')
+// Methods
+const handleImageUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  // Check file size
+  if (file.size > 2048 * 1024) {
+    alert('La imagen es demasiado grande. El tamaño máximo es 2MB.');
+    return;
   }
+  
+  // Create preview
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    imagePreview.value = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  
+  // Set file to form
+  form.image = file;
+};
 
-  // Obtener proveedores
-  try {
-    const suppliersResponse = await axios.get('/suppliers')
-    suppliers.value = suppliersResponse.data
-  } catch (error) {
-    console.error(error)
-    alert('Error al cargar los proveedores')
+const removeImage = () => {
+  form.image = null;
+  imagePreview.value = null;
+  document.getElementById('image').value = '';
+};
+
+const calculateProfit = () => {
+  const purchase = parseFloat(form.purchase_price) || 0;
+  const selling = parseFloat(form.selling_price) || 0;
+  
+  if (purchase > 0 && selling > 0) {
+    profit.value = selling - purchase;
+    profitPercentage.value = (profit.value / purchase) * 100;
+  } else {
+    profit.value = null;
+    profitPercentage.value = 0;
   }
-})
+};
 
-const handleImageUpload = (event) => {
-  form.value.image = event.target.files[0]
-}
+const scanBarcode = () => {
+  // In a real implementation, you'd connect to a barcode scanner API
+  // For demonstration, we'll simulate a scan with a prompt
+  const scannedCode = prompt('Por favor escanee o ingrese el código de barras:');
+  if (scannedCode) {
+    form.barcode = scannedCode;
+    
+    // Optional: check if this product already exists in the system
+    // You could make an API call here to check the barcode
+  }
+};
 
-const startBarcodeScanner = () => {
-  showScanner.value = true
-  Quagga.init({
-    inputStream: {
-      name: 'Live',
-      type: 'LiveStream',
-      target: document.querySelector('#barcode-scanner'),
-      constraints: {
-        facingMode: 'environment', // Usa la cámara trasera
-      },
+const submit = () => {
+  isSubmitting.value = true;
+  
+  form.post('/products', {
+    onSuccess: () => {
+      isSubmitting.value = false;
     },
-    decoder: {
-      readers: ['ean_reader', 'upc_reader', 'code_128_reader'], // Tipos de códigos de barras soportados
-    },
-  }, (err) => {
-    if (err) {
-      console.error(err)
-      alert('Error al iniciar el escáner de códigos de barras')
-      showScanner.value = false
-      return
+    onError: () => {
+      isSubmitting.value = false;
     }
-    Quagga.start()
-  })
-
-  Quagga.onDetected((result) => {
-    if (result && result.codeResult) {
-      form.value.barcode = result.codeResult.code
-      stopBarcodeScanner()
-      alert('Código de barras escaneado con éxito')
-    }
-  })
-}
-
-const stopBarcodeScanner = () => {
-  Quagga.stop()
-  showScanner.value = false
-}
-
-const validateForm = () => {
-  errors.value = {}
-
-  if (!form.value.name) {
-    errors.value.name = 'El nombre del producto es obligatorio'
-  }
-  if (form.value.purchase_price <= 0) {
-    errors.value.purchase_price = 'El precio de compra debe ser mayor a 0'
-  }
-  if (form.value.sale_price <= 0) {
-    errors.value.sale_price = 'El precio de venta debe ser mayor a 0'
-  }
-  if (form.value.sale_price < form.value.purchase_price) {
-    errors.value.sale_price = 'El precio de venta debe ser mayor o igual al precio de compra'
-  }
-  if (form.value.stock < 0) {
-    errors.value.stock = 'El stock no puede ser negativo'
-  }
-  if (!form.value.category_id) {
-    errors.value.category_id = 'Debes seleccionar una categoría'
-  }
-
-  return Object.keys(errors.value).length === 0
-}
-
-const submitProduct = async () => {
-  if (!validateForm()) {
-    alert('Por favor, corrige los errores en el formulario')
-    return
-  }
-
-  isSubmitting.value = true
-  const formData = new FormData()
-  formData.append('name', form.value.name)
-  formData.append('barcode', form.value.barcode)
-  formData.append('description', form.value.description)
-  formData.append('purchase_price', form.value.purchase_price)
-  formData.append('sale_price', form.value.sale_price)
-  formData.append('stock', form.value.stock)
-  formData.append('category_id', form.value.category_id)
-  if (form.value.supplier_id) {
-    formData.append('supplier_id', form.value.supplier_id)
-  }
-  if (form.value.image) {
-    formData.append('image', form.value.image)
-  }
-
-  try {
-    await axios.post('/products', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
-    alert('Producto agregado con éxito')
-    router.visit('/products')
-  } catch (error) {
-    if (error.response && error.response.data.errors) {
-      errors.value = error.response.data.errors
-      alert('Error al agregar el producto. Revisa los campos.')
-    } else {
-      alert('Error al agregar el producto')
-    }
-    console.error(error)
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-const cancel = () => {
-  router.visit('/products')
-}
-
-onUnmounted(() => {
-  if (showScanner.value) {
-    Quagga.stop()
-  }
-})
+  });
+};
 </script>
+
+<style scoped>
+/* Custom styles if needed */
+</style>

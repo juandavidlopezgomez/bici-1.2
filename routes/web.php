@@ -28,30 +28,16 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Rutas para Productos (Frontend - Inertia)
-    Route::get('/products/create', function () {
-        return Inertia::render('Products/Create');
-    })->name('products.create');
-
-    Route::get('/products', function () {
-        return Inertia::render('Products/Index');
-    })->name('products.index');
-
-    // Rutas para Categorías (Frontend - Inertia)
-    Route::get('/categories', function () {
-        return Inertia::render('Categories/Index');
-    })->name('categories.index');
-
-    // Rutas para Proveedores (Frontend - Inertia)
-    Route::get('/suppliers', function () {
-        return Inertia::render('Suppliers/Index');
-    })->name('suppliers.index');
-
-    // Rutas API (Backend - AJAX)
-    Route::resource('products', ProductController::class)->except(['create', 'edit']);
-    Route::resource('categories', CategoryController::class)->except(['create', 'edit']);
-    Route::resource('suppliers', SupplierController::class)->except(['create', 'edit']);
-    Route::resource('purchase-invoices', PurchaseInvoiceController::class)->except(['create', 'edit']);
+    // Rutas de productos
+    Route::resource('products', ProductController::class);
+    Route::post('products/barcode', [ProductController::class, 'getProductByBarcode'])->name('products.barcode');
+    
+    // Rutas de categorías
+    Route::resource('categories', CategoryController::class);
+    
+    // Rutas de proveedores
+    Route::resource('suppliers', SupplierController::class);
+       
 });
 
 require __DIR__.'/auth.php';
