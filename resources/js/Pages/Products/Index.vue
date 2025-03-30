@@ -16,7 +16,8 @@
         </Link>
       </div>
 
-      <div v-if="$page.props.flash.message" class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700">
+      <!-- Mensaje flash corregido con validación adicional -->
+      <div v-if="$page.props.flash && $page.props.flash.message" class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700">
         {{ $page.props.flash.message }}
       </div>
 
