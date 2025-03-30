@@ -18,10 +18,10 @@
       </div>
 
       <!-- Mensajes Flash -->
-      <div v-if="$page.props.flash.message" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 mx-6">
+      <div v-if="$page.props.flash && $page.props.flash.message" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 mx-6">
         <p>{{ $page.props.flash.message }}</p>
       </div>
-      <div v-if="$page.props.flash.error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 mx-6">
+      <div v-if="$page.props.flash && $page.props.flash.error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 mx-6">
         <p>{{ $page.props.flash.error }}</p>
       </div>
 
@@ -124,4 +124,44 @@
             </button>
             <button 
               type="button" 
-              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+              @click="showDeleteModal = false"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </AuthenticatedLayout>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import { Link, router } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+
+// Props
+const props = defineProps({
+  suppliers: Array
+});
+
+// Estado del modal de confirmación
+const showDeleteModal = ref(false);
+const supplierToDelete = ref(null);
+
+// Métodos
+const confirmDelete = (supplier) => {
+  supplierToDelete.value = supplier;
+  showDeleteModal.value = true;
+};
+
+const deleteSupplier = () => {
+  router.delete(`/suppliers/${supplierToDelete.value.id}`, {
+    onSuccess: () => {
+      showDeleteModal.value = false;
+      supplierToDelete.value = null;
+    }
+  });
+};
+</script>
