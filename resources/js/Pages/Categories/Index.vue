@@ -18,10 +18,10 @@
       </div>
 
       <!-- Mensajes Flash -->
-      <div v-if="$page.props.flash.message" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 mx-6">
+      <div v-if="$page.props.flash && $page.props.flash.message" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 mx-6">
         <p>{{ $page.props.flash.message }}</p>
       </div>
-      <div v-if="$page.props.flash.error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 mx-6">
+      <div v-if="$page.props.flash && $page.props.flash.error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 mx-6">
         <p>{{ $page.props.flash.error }}</p>
       </div>
 
@@ -130,7 +130,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
 const props = defineProps({
